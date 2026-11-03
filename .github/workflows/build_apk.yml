@@ -14,21 +14,16 @@ jobs:
       - name: 📥 Checkout Code
         uses: actions/checkout@v4
 
-      # ─── باز کردن فایل ZIP ───
       - name: 📦 Extract Project ZIP
         run: |
           sudo apt-get install -y unzip
           unzip -o "VortexX-Project (2).zip" -d extracted
-          echo "--- ساختار فایل‌های باز شده ---"
           find extracted -maxdepth 3 -type d
-          find extracted -name "settings.gradle*" | head -5
 
-      # ─── پیدا کردن ریشه پروژه ───
       - name: 🔍 Detect Project Root
         id: root
         run: |
-          FILE=$(find ./extracted -name "settings.gradle*" \
-                 -not -path "*/build/*" | head -n 1)
+          FILE=$(find ./extracted -name "settings.gradle*" -not -path "*/build/*" | head -n 1)
           if [ -z "$FILE" ]; then
             echo "❌ settings.gradle not found!"
             exit 1
@@ -43,11 +38,17 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: 🤖 Set up Android SDK
-        uses: android-actions/setup-android@v3
+      # 💡 Android SDK از قبل روی سرور نصبه — فقط لایسنس‌ها رو قبول می‌کنیم
+      - name: 🤖 Accept SDK Licenses
+        run: |
+          echo "SDK path: $ANDROID_HOME"
+          ls "$ANDROID_HOME"
+          yes | sdkmanager --licenses > /dev/null 2>&1 || true
 
       - name: ⚙️ Install NDK & CMake
-        run: sdkmanager "ndk;26.1.10909125" "cmake;3.22.1"
+        run: |
+          sdkmanager --install "ndk;26.1.10909125" "cmake;3.22.1"
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/26.1.10909125" >> $GITHUB_ENV
 
       - name: 🐘 Set up Gradle 8.7
         uses: gradle/actions/setup-gradle@v4
