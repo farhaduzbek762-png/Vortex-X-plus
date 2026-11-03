@@ -38,16 +38,16 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      # 💡 Android SDK از قبل روی سرور نصبه — فقط لایسنس‌ها رو قبول می‌کنیم
-      - name: 🤖 Accept SDK Licenses
+      - name: 🤖 Locate SDK & Accept Licenses
         run: |
-          echo "SDK path: $ANDROID_HOME"
-          ls "$ANDROID_HOME"
-          yes | sdkmanager --licenses > /dev/null 2>&1 || true
+          SDKMANAGER=$(find "$ANDROID_HOME/cmdline-tools" -name "sdkmanager" -type f | head -n 1)
+          echo "sdkmanager path: $SDKMANAGER"
+          echo "SDKMANAGER=$SDKMANAGER" >> $GITHUB_ENV
+          yes | "$SDKMANAGER" --licenses > /dev/null 2>&1 || true
 
       - name: ⚙️ Install NDK & CMake
         run: |
-          sdkmanager --install "ndk;26.1.10909125" "cmake;3.22.1"
+          "$SDKMANAGER" --install "ndk;26.1.10909125" "cmake;3.22.1"
           echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/26.1.10909125" >> $GITHUB_ENV
 
       - name: 🐘 Set up Gradle 8.7
